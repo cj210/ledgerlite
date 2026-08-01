@@ -1,6 +1,6 @@
 # Development Environment
 
-##Development Machine
+## Development Machine
 
 ### 1. Tool: Arch Linux VM
 

@@ -1,0 +1,7 @@
+# Python virtual environment
+ledlite/
+.venv/
+
+# Python cache
+__pycache__/
+*.pyc

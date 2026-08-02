@@ -151,3 +151,22 @@ Successful software adapts to changing requirements without unnecessary rework.
 - Architecture Journal.
 - Planned migration from SQLite to PostgreSQL.
 - Future roadmap documentation.
+
+---
+
+## Principle 009
+
+### Title
+Compose Applications, Don't Accumulate Them
+
+### Statement
+Build applications by composing independent modules with well-defined responsibilities instead of continuously expanding a central application file.
+
+### Why
+Composing applications keeps the architecture scalable, maintainable, and easy to understand. The application entry point should focus on assembling components rather than implementing business functionality.
+
+### Applied In
+- `main.py` acts only as the application composition and startup entry point.
+- API endpoints are implemented in dedicated router modules.
+- Routers are explicitly registered using `app.include_router()`.
+- Features can be added or removed with minimal impact on the application entry point.

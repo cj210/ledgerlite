@@ -62,3 +62,51 @@ Good engineering is not only about writing code; it is about creating a process 
 3. Design the database schema from the finalized domain model.
 4. Initialize the FastAPI application structure.
 5. Start implementing the first working backend components.
+
+## Date: 03/08/2026
+
+### Summary
+
+Continued building the backend foundation of LedgerLite by transforming the project from a simple FastAPI application into a modular backend architecture. Established centralized configuration, created the reusable database connection layer, and introduced router-based endpoint organization.
+
+### Work Completed
+- Created the application package structure organized by responsibility.
+- Built the first FastAPI application entry point.
+- Implemented centralized configuration using BaseSettings.
+- Created reusable SQLite connection and session layers.
+- Implemented the first router (health.py).
+- Registered routers using app.include_router().
+- Verified the application through / and /health endpoints.
+
+### Questions Raised
+1. How does main.py discover routes defined in other modules?
+2. Why separate routing, configuration, and database responsibilities instead of placing everything in main.py?
+3. Should health endpoints verify only application availability or external dependencies like the database?
+
+### Decisions Made
+- Decision 011 finalized
+- Decision 012 finalized
+- Decision 013 finalized
+- Decision 014 finalized
+
+### Lessons Learned
+1. Python modules export objects, functions, and classes. Importing a router is no different from importing the settings object.
+2. main.py should compose the application rather than implement individual features.
+3. Routers own endpoint implementations, while the application is only responsible for registering them.
+4. Centralizing configuration allows the same application code to run in different environments without modification.
+5. Separating connection management from business logic reduces coupling and simplifies future database migrations.
+6. A modular architecture keeps growth predictable; adding a new feature becomes creating a new router and registering it.
+
+### Challenges Faced
+1. Understanding how routers defined in separate modules become part of the FastAPI application.
+2. Distinguishing between Python imports and FastAPI route registration.
+3. Recognizing that architectural boundaries are about responsibilities rather than simply splitting files.
+
+### Biggest Insight
+Applications are assembled by composing independent modules that explicitly expose responsibilities.
+
+### Next Steps
+1. Continue expanding the backend foundation following the established architecture.
+2. Begin defining the first domain models.
+3. Design the initial database schema.
+4. Introduce API modules for business functionality beyond health checks.

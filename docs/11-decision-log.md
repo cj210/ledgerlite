@@ -166,3 +166,73 @@ Documentation-first development
 
 ### Status
 Accepted
+
+## Decision 011
+**Date:** 2026-08-03
+
+API endpoints are organized using dedicated routers
+
+### Reason
+- Organize endpoints by responsibility
+- Keep `main.py` focused on application composition
+- Improve maintainability and scalability
+- Provide predictable locations for API endpoints
+
+### Alternatives Considered
+- Define all endpoints directly inside `main.py`
+
+### Status
+Accepted
+
+## Decision 012
+**Date:** 2026-08-03
+
+Application configuration is centralized through a shared Settings object
+
+### Reason
+- Establish a single source of truth for configuration
+- Avoid scattered configuration values throughout the codebase
+- Support different environments without changing application code
+- Simplify future configuration management
+
+### Alternatives Considered
+- Hardcode configuration values in multiple modules
+- Maintain independent configuration variables in each file
+
+### Status
+Accepted
+
+
+## Decision 013
+**Date:** 2026-08-03
+
+Database access is performed through a dedicated connection and session layer
+
+### Reason
+- Separate connection management from business logic
+- Keep database implementation isolated
+- Simplify future migration to another database engine
+- Improve maintainability and testability
+
+### Alternatives Considered
+- Create database connections directly wherever they are required
+
+### Status
+Accepted
+
+## Decision 014
+**Date:** 2026-08-02
+
+`main.py` is responsible only for application composition and startup
+
+### Reason
+- Keep the application entry point simple and readable
+- Prevent business logic from accumulating in `main.py`
+- Clearly separate application composition from feature implementation
+- Simplify onboarding by making the startup flow easy to understand
+
+### Alternatives Considered
+- Allow feature implementations and route definitions directly inside `main.py`
+
+### Status
+Accepted

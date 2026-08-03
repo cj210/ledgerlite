@@ -170,3 +170,6 @@ Composing applications keeps the architecture scalable, maintainable, and easy t
 - API endpoints are implemented in dedicated router modules.
 - Routers are explicitly registered using `app.include_router()`.
 - Features can be added or removed with minimal impact on the application entry point.
+
+
+Represent business concepts explicitly rather than relying on free-form primitive values.

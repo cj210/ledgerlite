@@ -236,3 +236,5 @@ Accepted
 
 ### Status
 Accepted
+
+Business domain constants are represented using domain enums.

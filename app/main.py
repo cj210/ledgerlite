@@ -7,11 +7,13 @@ from app.core.config import settings
 from app.database.session import get_db
 from app.api.routes.health import health_router
 from app.api.routes.user import user_router
+from app.api.routes.financial_record import financial_record_router
 
 
 app = FastAPI(title=settings.app_name)
 app.include_router(health_router)
 app.include_router(user_router)
+app.include_router(financial_record_router)
 
 
 @app.get("/")

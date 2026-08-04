@@ -110,3 +110,121 @@ Applications are assembled by composing independent modules that explicitly expo
 2. Begin defining the first domain models.
 3. Design the initial database schema.
 4. Introduce API modules for business functionality beyond health checks.
+
+---
+
+## Date
+
+2026-08-04
+
+## Summary
+
+Today's work focused on completing the API contract layer for LedgerLite. The objective was not to build persistence, but to establish clear boundaries between the HTTP layer, domain models, and future business logic.
+
+---
+
+## Completed
+
+- Completed `User` API router.
+  - `POST /users`
+  - `GET /user`
+
+- Completed `FinancialRecord` API router.
+  - `POST /financial_records`
+  - `GET /financial_records/{record_id}`
+
+- Validated request and response schemas using FastAPI and Pydantic.
+
+- Tested all endpoints using `curl` and FastAPI Swagger UI (`/docs`).
+
+---
+
+## Architectural Decisions
+
+### API Contracts Before Persistence
+
+The API contract should be designed and validated before introducing a database or ORM.
+
+This allowed the request and response models to evolve independently of persistence concerns.
+
+---
+
+### Routers Only Handle HTTP
+
+Routers are responsible for:
+
+- Receiving HTTP requests.
+- Validating request data.
+- Routing requests to the appropriate service.
+- Returning HTTP responses.
+
+Routers are **not** responsible for:
+
+- Business rules.
+- Database operations.
+- Password hashing.
+- Validation requiring business knowledge.
+- Authorization logic.
+
+---
+
+### Response Models Represent System-Owned Data
+
+Separate request and response schemas remain justified because they represent different ownership.
+
+Client-owned data:
+
+- username
+- display_name
+- amount
+- transaction_date
+- description
+
+System-owned data:
+
+- id
+- user_id
+- created_at
+- updated_at
+
+The API contract should expose only the fields appropriate for each request type.
+
+---
+
+### REST Resource Design
+
+Single resources are addressed using identifiers in the URL.
+
+Examples:
+
+- `GET /financial_records/{record_id}`
+- `POST /financial_records`
+
+The collection endpoint represents the resource collection, while the identifier represents an individual resource.
+
+---
+
+## Lessons Learned
+
+- FastAPI automatically converts incoming JSON into strongly typed Pydantic objects before calling the route function.
+- `response_model` is not only documentation; it validates and serializes responses before they are returned.
+- Path parameters become typed Python objects in the route function.
+- Swagger UI (`/docs`) provides an interactive client generated directly from the API contract.
+
+---
+
+## Reflection
+
+The focus shifted away from learning FastAPI syntax and toward understanding backend architecture.
+
+The important realization today was that frameworks are implementation tools, while the architecture defines responsibilities and boundaries.
+
+The API layer now provides a stable contract that future service and persistence layers can build upon without changing the external behavior of the application.
+
+---
+
+## Next Session
+
+- Review and finalize the database design.
+- Validate tables, relationships, constraints, and ownership.
+- Introduce SQLAlchemy models as the persistence representation of the already-defined business domain.

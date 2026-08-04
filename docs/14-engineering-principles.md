@@ -189,4 +189,37 @@ A uniform ownership model reduces conditional logic, simplifies authorization an
 - Starter tags are copied into each user's account during onboarding.
 - Starter goals are copied into each user's account during onboarding.
 - All business entities are owned by exactly one user after creation.
-Represent business concepts explicitly rather than relying on free-form primitive values.
+
+---
+
+## Principle 011
+
+### Title
+
+Represent Business Concepts Explicitly
+
+### Statement
+
+Represent stable business domain concepts explicitly rather than relying on free-form primitive values.
+
+### Why
+
+Explicit domain types (such as enums):
+
+- Prevent invalid values from entering the system.
+- Make business rules self-documenting.
+- Improve type safety and validation.
+- Reduce duplicated string comparisons throughout the codebase.
+- Establish a single source of truth for business constants.
+- Improve readability, maintainability, and IDE support.
+
+### Applied In
+
+- `RecordType`
+- `UserType`
+- `Frequency`
+- Future business-owned constants with a fixed set of valid values.
+
+---
+
+

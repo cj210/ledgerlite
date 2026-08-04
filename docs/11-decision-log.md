@@ -290,4 +290,65 @@ LedgerLite will seed starter categories, tags, and goals during user onboarding.
 - No distinction exists between starter and user-created records after onboarding.
 - Simpler authorization, querying, and maintenance.
 
-Business domain constants are represented using domain enums.
+## Decision 015
+
+### Title
+
+Starter Data Through User Onboarding
+
+### Status
+
+Accepted
+
+### Context
+
+LedgerLite should provide common categories, tags, and goals so new users can start using the application immediately without manually creating common reference data.
+
+### Alternatives Considered
+
+#### Option 1 — Shared System-Owned Records
+
+Maintain a single set of system-owned categories, tags, and goals shared by all users.
+
+**Pros**
+
+- Only one copy of the starter data.
+- Easy to update centrally.
+
+**Cons**
+
+- Users cannot freely rename, modify, or delete starter records.
+- Requires special authorization rules.
+- Queries must combine system-owned and user-owned data.
+- Introduces special-case logic throughout the application.
+
+---
+
+#### Option 2 — User-Owned Starter Data (Chosen)
+
+During user onboarding, copy a predefined set of starter categories, tags, and goals into the new user's account.
+
+**Pros**
+
+- Every business entity follows the same ownership model.
+- Users have complete control over their own data.
+- Authorization remains straightforward.
+- Database queries remain simple and consistent.
+- Eliminates special-case logic.
+
+**Cons**
+
+- Stores duplicate starter records for each user.
+- Changes to the starter template affect only future users.
+
+### Decision
+
+LedgerLite will seed starter categories, tags, and goals during user onboarding. After creation, all business entities are user-owned and treated identically by the application.
+
+### Consequences
+
+- Every category, tag, and goal belongs to exactly one user.
+- User onboarding is responsible for seeding starter data.
+- No distinction exists between starter data and user-created data after onboarding.
+- Authorization and querying remain simple and consistent.
+- Future template changes affect only newly created users.

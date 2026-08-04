@@ -11,7 +11,7 @@ class UserType(str, Enum):
     ORGANIZATION = "organization"
 
 class Frequency(str, Enum):
-    # ONE_TIME = "one_time"
+
     DAILY = "daily"
     WEEKLY = "weekly"
     MONTHLY = "monthly"

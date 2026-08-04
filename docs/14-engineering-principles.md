@@ -171,5 +171,22 @@ Composing applications keeps the architecture scalable, maintainable, and easy t
 - Routers are explicitly registered using `app.include_router()`.
 - Features can be added or removed with minimal impact on the application entry point.
 
+---
 
+## Principle 010
+
+### Title
+Prefer Uniform Ownership Models
+
+### Statement
+Design business entities to follow a single ownership model whenever possible. Avoid introducing special cases such as shared system-owned records when the same outcome can be achieved through initialization or templating.
+
+### Why
+A uniform ownership model reduces conditional logic, simplifies authorization and querying, improves maintainability, and makes the system easier to understand and extend.
+
+### Applied In
+- Starter categories are copied into each user's account during onboarding.
+- Starter tags are copied into each user's account during onboarding.
+- Starter goals are copied into each user's account during onboarding.
+- All business entities are owned by exactly one user after creation.
 Represent business concepts explicitly rather than relying on free-form primitive values.

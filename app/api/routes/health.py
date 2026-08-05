@@ -7,5 +7,6 @@ health_router = APIRouter()
 def get_health():
     return { "Name": settings.app_name,
              "DB": settings.database_name,
-             "Debug": settings.debug }
+             "Debug": settings.debug,
+             "Health": "Good"}
 

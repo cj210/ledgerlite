@@ -228,3 +228,132 @@ The API layer now provides a stable contract that future service and persistence
 - Review and finalize the database design.
 - Validate tables, relationships, constraints, and ownership.
 - Introduce SQLAlchemy models as the persistence representation of the already-defined business domain.
+
+
+## Date
+
+2026-08-05
+
+## Summary
+
+Today's work completed the database design phase of LedgerLite.
+
+The focus was on validating the business model rather than writing code. Several design decisions were revisited and refined to improve consistency, preserve historical financial data, and simplify the MVP without sacrificing future extensibility.
+
+The backend architecture for Week 1 is now considered complete.
+
+---
+
+## Completed
+
+- Finalized the `User` business model.
+- Finalized the `Category`, `Tag`, and `Goal` relationships.
+- Completed the `FinancialRecord` database design.
+- Completed `06-database-design.md`.
+- Reviewed documentation structure across the project.
+- Planned the Week 2 implementation roadmap.
+
+---
+
+## Architectural Decisions
+
+### User Deactivation Instead of Deletion
+
+Users will be deactivated rather than permanently deleted.
+
+This preserves historical financial records, maintains ownership relationships, and simplifies future reporting and auditing.
+
+---
+
+### Simplified Recurring Transaction Model
+
+LedgerLite MVP will support only:
+
+- Monthly recurrence
+- Yearly recurrence
+
+Weekly and custom recurrence patterns are intentionally postponed until after the MVP.
+
+---
+
+### Separate Business Concepts
+
+Recurring schedule and fixed transaction amount represent different business concepts.
+
+Recurring answers:
+
+> "When does this transaction occur?"
+
+Fixed answers:
+
+> "Does the amount remain constant?"
+
+These concepts are modeled independently.
+
+---
+
+### Nullable Classifications
+
+Financial records may exist without:
+
+- Category
+- Tag
+- Goal
+
+Deleting these classifications will not remove historical financial records.
+
+Instead, the related reference becomes `NULL`.
+
+---
+
+## Documentation
+
+The documentation structure became clearer during today's discussion.
+
+Each document now has a distinct responsibility.
+
+Examples:
+
+- Domain Model → Business concepts.
+- Database Design → Persistence design.
+- Decision Log → Why architectural decisions were made.
+- Engineering Principles → Reusable design principles.
+- Roadmap → Development milestones.
+
+This separation prevents duplication and keeps documentation easier to maintain.
+
+---
+
+## Lessons Learned
+
+- Domain models describe business concepts rather than database tables.
+- Database design documents should describe persistence, not architectural reasoning.
+- Decision logs should capture *why* a design changed rather than implementation details.
+- Engineering principles should describe reusable patterns rather than project-specific decisions.
+
+---
+
+## Reflection
+
+Today marked the completion of the design phase.
+
+At this point, the project has:
+
+- A defined business domain.
+- Stable API contracts.
+- A documented database design.
+- Architectural principles.
+- Recorded design decisions.
+
+The next stage is no longer about deciding how LedgerLite should work.
+
+It is about implementing the architecture that has already been designed.
+
+---
+
+## Next Session
+
+- Begin Week 2.
+- Translate the database design into SQLAlchemy models.
+- Introduce the persistence layer.
+- Understand how SQLAlchemy represents the domain model without changing the architecture.

@@ -352,3 +352,135 @@ LedgerLite will seed starter categories, tags, and goals during user onboarding.
 - No distinction exists between starter data and user-created data after onboarding.
 - Authorization and querying remain simple and consistent.
 - Future template changes affect only newly created users.
+
+---
+
+## Decision 016
+
+### Title
+
+Deactivate Users Instead of Deleting Accounts
+
+### Status
+
+Accepted
+
+### Context
+
+LedgerLite stores historical financial records that may be needed for reporting, auditing, or future reference.
+
+Deleting a user would either remove historical financial data or require complex reassignment of ownership.
+
+### Alternatives Considered
+
+#### Option 1 — Permanently Delete Users
+
+**Pros**
+
+- Removes unwanted accounts completely.
+- Simpler user lifecycle.
+
+**Cons**
+
+- Historical financial data is lost.
+- Foreign key relationships become difficult to maintain.
+- May violate future reporting requirements.
+
+---
+
+#### Option 2 — Deactivate Users (Chosen)
+
+Introduce a user status indicating whether an account is active or deactivated.
+
+**Pros**
+
+- Preserves historical financial records.
+- Maintains referential integrity.
+- Allows future account restoration.
+- Simplifies auditing and reporting.
+
+**Cons**
+
+- Requires filtering inactive users in queries.
+
+### Decision
+
+LedgerLite will deactivate user accounts instead of permanently deleting them.
+
+### Consequences
+
+- User data remains available for historical purposes.
+- User lifecycle is managed through account status.
+- Business entities continue to belong to their original owner.
+
+---
+
+## Decision 017
+
+### Title
+
+Limit MVP Recurring Transactions to Monthly and Yearly
+
+### Status
+
+Accepted
+
+### Context
+
+Recurring transactions can support many scheduling patterns, including daily, weekly, monthly, yearly, and custom intervals.
+
+Supporting every possible recurrence significantly increases implementation complexity while providing limited value for the MVP.
+
+### Alternatives Considered
+
+#### Option 1 — Fully Flexible Recurrence
+
+Support arbitrary recurrence rules.
+
+**Pros**
+
+- Maximum flexibility.
+- Covers all possible scheduling scenarios.
+
+**Cons**
+
+- Complex implementation.
+- Difficult validation.
+- Increased maintenance.
+- Unnecessary for MVP.
+
+---
+
+#### Option 2 — Monthly and Yearly Only (Chosen)
+
+Support only monthly and yearly recurring transactions.
+
+**Pros**
+
+- Covers the majority of personal finance use cases.
+- Simple data model.
+- Easier validation.
+- Lower implementation complexity.
+
+**Cons**
+
+- Weekly and custom schedules are deferred.
+
+### Decision
+
+LedgerLite MVP will support only monthly and yearly recurring financial records.
+
+Recurring schedules will be represented using:
+
+- frequency
+- due_month
+- due_day
+- end_date
+
+### Consequences
+
+- Simpler recurring transaction model.
+- Easier validation.
+- Weekly and custom recurrence become future enhancements.
+
+

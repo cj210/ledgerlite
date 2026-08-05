@@ -21,12 +21,6 @@ def create_user(user: UserCreate):
             id = 1, 
             created_at = datetime.now(),
             updated_at = datetime.now())
-    print(type(user))
-    print(user)
-    print(user.username)
-    print(type(response))
-    print(response)
-    print(response.username)
     return response
     
 

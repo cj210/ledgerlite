@@ -222,4 +222,27 @@ Explicit domain types (such as enums):
 
 ---
 
+## Principle 012
+
+### Title
+
+Separate Independent Business Concepts
+
+### Statement
+
+Model independent business concepts independently, even when they frequently appear together.
+
+### Why
+
+Combining unrelated concepts into a single field or abstraction makes the model harder to understand and evolve.
+
+Separating concepts improves clarity, validation, and future extensibility.
+
+### Applied In
+
+- Recurring schedule is represented independently of whether the transaction amount is fixed.
+- `frequency` describes **when** a transaction occurs.
+- `is_fixed` describes **whether the amount changes**.
+
+
 

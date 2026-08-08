@@ -245,4 +245,33 @@ Separating concepts improves clarity, validation, and future extensibility.
 - `is_fixed` describes **whether the amount changes**.
 
 
+---
 
+## Principle 013
+
+### Title
+
+Separate Responsibilities, Preserve Contracts
+
+### Statement
+
+Separate independent application responsibilities while maintaining stable contracts between them.
+
+The frontend and backend should be independently evolvable applications. Internal implementation changes should be contained within the respective application whenever possible, while communication between applications should occur through an explicit API contract.
+
+### Why
+
+Separating responsibilities reduces unnecessary dependencies and allows individual parts of the system to evolve without requiring changes throughout the application.
+
+A stable contract provides a clear boundary between frontend and backend while allowing each side to change its internal implementation independently.
+
+The frontend may understand business domain concepts such as transactions, accounts, categories, and users. This represents shared business vocabulary rather than coupling to backend implementation details.
+
+### Applied In
+
+- Frontend and backend are maintained as separate applications.
+- Frontend communication with the backend occurs through the API contract.
+- Frontend does not depend on backend implementation details.
+- Backend implementation changes should not require frontend changes when the API contract remains unchanged.
+- Frontend implementation changes should not require backend changes when the API contract remains unchanged.
+- Shared business concepts are expressed using consistent domain terminology across the API boundary.

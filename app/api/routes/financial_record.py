@@ -1,13 +1,12 @@
 # Standard imports
 from fastapi import APIRouter, status
 from datetime import date, datetime
+from decimal import Decimal
 
 # Project imports
 from app.domain.enums import RecordType
 from app.schemas.financial_record import FinancialRecordResponse, FinancialRecordCreate
 
-# Thirdparty imports
-from decimal import Decimal
 
 financial_record_router = APIRouter()
 

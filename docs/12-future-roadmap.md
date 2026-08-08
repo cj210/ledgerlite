@@ -1,4 +1,4 @@
-# FUTURE ROADMAP
+# Future Roadmap
 
 ## Purpose
 
@@ -67,3 +67,13 @@ This document is not a wishlist. It contains enhancements that have been discuss
 - Redis caching
 - Background workers
 - Performance optimization
+
+---
+
+## Principles
+
+- Features should be added here only after being consciously deferred.
+- Items should have a clear reason for being postponed when that context is important.
+- The roadmap should be reviewed as the product evolves.
+- Items may be removed if they are no longer considered valuable.
+- Technical improvements should be introduced when they address an actual requirement or limitation.

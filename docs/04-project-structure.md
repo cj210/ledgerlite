@@ -1,18 +1,41 @@
-# PROJECT STRUCTURE
+# Project Structure
 
 ## Purpose
 
-Define the architectural organization of the LedgerLite backend.
+Define the architectural organization of the LedgerLite repository.
 
-Each package has a single responsibility and should not overlap with another package.
+The repository contains the backend, frontend, tests, and project documentation.
+
+Each major area has a clear responsibility and should avoid unnecessary overlap with other areas.
+
+---
+
+# Repository Structure
+
+    ledgerlite/
+    ├── app/                    # Backend application
+    ├── ui/                     # Frontend application
+    ├── tests/                  # Backend tests
+    ├── docs/                   # Project documentation
+    ├── .venv/                  # Backend virtual environment
+    ├── requirements.txt        # Backend dependencies
+    └── ...
 
 ---
 
-# app/
+# Backend
 
-Contains the application source code.
+The backend application is contained within `app/`.
 
----
+    app/
+    ├── api/
+    ├── core/
+    ├── database/
+    ├── domain/
+    ├── schemas/
+    ├── models/
+    ├── repositories/
+    └── services/
 
 ## api/
 
@@ -88,11 +111,11 @@ Typical schema types:
 - Update
 - Response
 
-Schemas are used only for communication between clients and the backend.
+Schemas are used for communication between clients and the backend.
 
 ---
 
-## models/ (Week 2)
+## models/
 
 Contains SQLAlchemy models.
 
@@ -106,7 +129,7 @@ Models describe how data is stored.
 
 ---
 
-## repositories/ (Week 2)
+## repositories/
 
 Contains database access logic.
 
@@ -120,7 +143,7 @@ Repositories communicate directly with SQLAlchemy.
 
 ---
 
-## services/ (Week 2)
+## services/
 
 Contains business logic.
 
@@ -135,53 +158,74 @@ Services are independent of HTTP and the database implementation.
 
 ---
 
-# Layered Architecture
+# Backend Layered Architecture
 
-```
-HTTP Request
-        │
-        ▼
-     Router
-        │
-        ▼
+    HTTP Request
+          │
+          ▼
+       Router
+          │
+          ▼
     Pydantic Schema
-        │
-        ▼
-      Service
-        │
-        ▼
-    Repository
-        │
-        ▼
- SQLAlchemy Model
-        │
-        ▼
-     Database
-```
+          │
+          ▼
+       Service
+          │
+          ▼
+     Repository
+          │
+          ▼
+    SQLAlchemy Model
+          │
+          ▼
+       Database
+
+---
+
+# Frontend
+
+The frontend application is contained within `ui/`.
+
+The initial structure is:
+
+    ui/
+    ├── package.json
+    ├── package-lock.json
+    └── src/
+        ├── components/
+        ├── pages/
+        ├── api/
+        ├── utils/
+        ├── App.jsx
+        └── main.jsx
+
+Detailed frontend architectural decisions are documented in:
+
+`15-frontend-architecture.md`
+
+UI conventions and design decisions are documented in:
+
+`16-ui-guidelines.md`
 
 ---
 
 # Design Principles
 
-- Every package has a single responsibility.
-- Routers never contain business logic.
-- Services never handle HTTP requests.
-- Repositories never contain business rules.
-- Models describe persistence.
-- Schemas describe API contracts.
-- Domain contains business concepts shared across the application.
+- Each major area has a clear responsibility.
+- Backend layers should not overlap responsibilities.
+- Frontend and backend remain separate applications.
+- Frontend communication with the backend occurs through the API contract.
+- Internal implementation details should remain within their respective application.
+- Project structure should evolve when actual complexity requires it.
 
+## Backend Dependencies
 
-## Dependencies
-api
-    ↓
-services
-    ↓
-repositories
-    ↓
-models
-    ↓
-database
-
-
-
+    api
+     ↓
+    services
+     ↓
+    repositories
+     ↓
+    models
+     ↓
+    database

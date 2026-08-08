@@ -155,5 +155,69 @@ pip --version
 pip install <package name>
 ```
 
+### 7. Tool: Node.js
+
+#### Purpose
+
+Node.js provides the JavaScript runtime required for frontend development and frontend tooling.
+
+#### Machine Installation
+
+    sudo pacman -S nodejs
+
+#### Verification
+
+    node --version
+
+#### Common Operations
+
+    node
+
+### 8. Tool: npm
+
+#### Purpose
+
+npm is the package manager used to install and manage frontend project dependencies.
+
+#### Machine Installation
+
+npm is installed with Node.js.
+
+#### Verification
+
+    npm --version
+
+#### Common Operations
+
+    npm install
+    npm install <package>
+    npm install -D <package>
+    npm run <script>
 
 ## Project Dependencies
+
+LedgerLite maintains dependencies separately for the backend and frontend.
+
+### Backend
+
+Python dependencies are managed using the project virtual environment.
+
+The dependency list is maintained in:
+
+    requirements.txt
+
+The file should be updated as backend dependencies evolve.
+
+### Frontend
+
+JavaScript dependencies are managed using npm.
+
+Dependency definitions are maintained in:
+
+    ui/package.json
+
+Exact dependency resolution is maintained in:
+
+    ui/package-lock.json
+
+Both files are committed to the repository so that the frontend environment can be reproduced consistently.

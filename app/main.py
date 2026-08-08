@@ -4,7 +4,6 @@ from fastapi import FastAPI
 
 # Project imports
 from app.core.config import settings
-from app.database.session import get_db
 from app.api.routes.health import health_router
 from app.api.routes.user import user_router
 from app.api.routes.financial_record import financial_record_router

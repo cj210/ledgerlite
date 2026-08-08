@@ -483,4 +483,264 @@ Recurring schedules will be represented using:
 - Easier validation.
 - Weekly and custom recurrence become future enhancements.
 
+---
+
+## Decision 018
+
+### Title
+
+Separate Database Persistence from Business Logic
+
+### Status
+
+Accepted
+
+### Context
+
+LedgerLite needs a clear separation between database operations and application business logic.
+
+Repositories interact with the database through SQLAlchemy Sessions. Services are responsible for business rules, calculations, validation, and orchestration of application operations.
+
+The SQLAlchemy Session is created through a Session factory and its lifecycle should remain outside the repository. Repositories receive an existing Session rather than creating their own Sessions.
+
+This separation keeps database infrastructure independent from business logic and allows multiple repositories to participate in the same Session and transaction when required.
+
+### Alternatives Considered
+
+#### Option 1 — Repositories Handle Everything
+
+Repositories would create their own Sessions and contain database operations, business rules, calculations, and other application logic.
+
+**Pros**
+
+* Simple initial implementation.
+* Fewer layers.
+
+**Cons**
+
+* Mixes persistence and business logic.
+* Makes repositories difficult to test and reuse.
+* Makes transaction boundaries harder to control.
+* Encourages database-specific logic to spread through the application.
+
+---
+
+#### Option 2 — Separate Persistence and Business Logic (Chosen)
+
+Repositories are responsible for database persistence operations, while services are responsible for business rules, calculations, and application workflows.
+
+Sessions are created outside repositories and injected into them.
+
+**Pros**
+
+* Clear separation of responsibilities.
+* Repositories remain focused on persistence.
+* Services can coordinate multiple repositories.
+* Multiple repositories can share the same Session and transaction.
+* Easier testing and future database changes.
+* Session lifecycle remains controlled by the application/request layer.
+
+**Cons**
+
+* Introduces additional layers.
+* Requires explicit dependency flow between layers.
+* Slightly more code than a tightly coupled approach.
+
+### Decision
+
+LedgerLite will use a layered persistence architecture with the following responsibilities:
+
+**Database Engine**
+
+* Provides database connectivity infrastructure.
+* Configured using the database URL.
+
+**Session Factory**
+
+* Creates SQLAlchemy Session objects.
+* Does not create a persistent global Session.
+
+**Session Lifecycle**
+
+* Sessions are created and managed outside repositories.
+* A Session is provided to repositories through dependency injection.
+* Session lifecycle and transaction boundaries remain outside repository classes.
+
+**Repositories**
+
+Repositories are responsible for database persistence operations, including:
+
+* Retrieving records.
+* Inserting records.
+* Updating records.
+* Deleting records.
+
+Repositories should not contain business calculations or application-specific business rules.
+
+**Services**
+
+Services are responsible for:
+
+* Business rules.
+* Calculations.
+* Validation that depends on business logic.
+* Coordinating multiple repository operations.
+* Application-level workflows.
+
+### Consequences
+
+* Database infrastructure remains independent from business logic.
+* Repository classes remain focused on persistence.
+* Services can use one or more repositories without taking direct responsibility for database implementation details.
+* A single Session can be shared across multiple repository operations when required.
+* Business calculations and rules will not be placed inside repository classes.
+* The architecture introduces additional abstraction but provides clearer responsibilities and easier long-term maintenance.
+
+---
+
+## Decision 018
+
+### Title
+
+Define Repository Responsibilities and Transaction Boundaries
+
+### Status
+
+Accepted
+
+### Context
+
+LedgerLite requires a clear separation between database persistence and business logic.
+
+Repositories interact with SQLAlchemy sessions and provide data-access operations. Business rules, calculations, validation beyond basic schema/database constraints, and transaction decisions should remain outside the repository layer.
+
+The application also has different deletion behaviors for different entities:
+
+* Users are deactivated rather than physically deleted.
+* Categories, goals, tags, and financial records may be physically deleted according to business requirements.
+
+Financial records are user-scoped and are normally retrieved through filters such as category, goal, tag, or date range rather than by directly retrieving an individual record.
+
+### Decision
+
+LedgerLite will use repositories as a **persistence/data-access layer**.
+
+Repositories are responsible for:
+
+* Retrieving records from the database.
+* Adding new model objects to the SQLAlchemy session.
+* Marking model objects for deletion.
+* Returning persisted or queried model objects.
+
+Repositories will **not** be responsible for:
+
+* Business calculations.
+* Business rules.
+* Application-level validation.
+* Committing transactions.
+* Rolling back transactions.
+* Constructing API responses.
+
+Transaction control will remain at the service/application layer.
+
+### Repository Contracts
+
+#### UserRepository
+
+* `get_by_id(user_id)`
+* `get_by_user_name(user_name)`
+* `create(user)`
+
+Users are never physically deleted through the repository because user deletion is represented by changing the user's status to deactivated.
+
+---
+
+#### CategoryRepository
+
+* `get_by_name(user_id, name)`
+* `create(category)`
+* `delete(category)`
+
+Category names are unique within a user through the database constraint `(user_id, name)`.
+
+---
+
+#### GoalRepository
+
+* `get_by_name(user_id, name)`
+* `create(goal)`
+* `delete(goal)`
+
+Goal names are unique within a user through the database constraint `(user_id, name)`.
+
+---
+
+#### TagRepository
+
+* `get_by_name(user_id, name)`
+* `create(tag)`
+* `delete(tag)`
+
+Tag names are unique within a user through the database constraint `(user_id, name)`.
+
+---
+
+#### FinancialRecordRepository
+
+* `get_by_category(user_id, category_id)`
+* `get_by_goal(user_id, goal_id)`
+* `get_by_tag(user_id, tag_id)`
+* `get_by_date_range(user_id, start_date, end_date)`
+* `create(record)`
+* `delete(financial_record)`
+
+All financial-record retrieval operations require `user_id` to ensure that records remain scoped to the authenticated user.
+
+Financial records are not normally retrieved by name because names are not unique. Retrieval is primarily performed through category, goal, tag, or date-range filters.
+
+Date-range filtering is a repository operation, while determining business periods such as "this month", "last month", or a financial year belongs to the service layer.
+
+### Transaction Boundary
+
+Repositories will not call:
+
+```python
+session.commit()
+session.rollback()
+```
+
+Repositories only modify the state of the SQLAlchemy session.
+
+For example:
+
+```python
+def create(self, category):
+    self.session.add(category)
+    return category
+```
+
+and:
+
+```python
+def delete(self, category):
+    self.session.delete(category)
+    return category
+```
+
+The service layer is responsible for deciding whether the overall operation succeeds and should be committed or whether it should be rolled back.
+
+### Consequences
+
+* Repository implementations remain small and predictable.
+* Business logic is kept out of database-access code.
+* Services can coordinate multiple repositories within a single transaction.
+* Transaction boundaries are centralized at the service/application layer.
+* User data remains explicitly scoped through `user_id`.
+* Database constraints remain responsible for enforcing uniqueness.
+* Repository methods can be reused by different services or API endpoints.
+* Physical deletion behavior is clearly separated from user deactivation.
+* More complex financial-record filtering can be added without moving business-period calculations into the repository.
+* The architecture remains easier to test because persistence and business logic have separate responsibilities.
+
+---
 

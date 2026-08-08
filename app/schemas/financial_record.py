@@ -1,9 +1,12 @@
-
+# Standard imports
+from pydantic import BaseModel, Field
+from typing import Optional
 from datetime import date, datetime
 from decimal import Decimal
-from typing import Optional
+
+
+# Project imports
 from app.domain.enums import RecordType, Frequency
-from pydantic import BaseModel, Field
 
 
 class FinancialRecordBase(BaseModel):

@@ -1,8 +1,10 @@
-from datetime import datetime
-from typing import Optional
-from app.domain.enums import UserType
+# Standard imports
 from pydantic import BaseModel, EmailStr
+from typing import Optional
+from datetime import datetime
 
+# Project imports
+from app.domain.enums import UserType
 
 class UserBase(BaseModel):
     user_name: str

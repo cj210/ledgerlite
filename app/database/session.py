@@ -1,8 +1,8 @@
-from app.database.connection import get_connection
+# Standard imports
+from sqlalchemy.orm import sessionmaker
+
+# Project imports
+from app.database.engine import engine
 
 
-def get_db():
-    return get_connection()
-
-
-
+SessionLocal = sessionmaker(engine)

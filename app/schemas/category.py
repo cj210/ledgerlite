@@ -1,5 +1,6 @@
-from datetime import datetime
+# Standard imports
 from pydantic import BaseModel
+from datetime import datetime
 from typing import Optional
 
 class CategoryBase(BaseModel):

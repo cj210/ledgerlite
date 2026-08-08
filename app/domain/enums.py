@@ -8,7 +8,7 @@ class RecordType(str, Enum):
 class UserType(str, Enum):
 
     INDIVIDUAL = "individual"
-    ORGANIZATION = "organization"
+    BUSINESS = "business"
 
 class Frequency(str, Enum):
 
@@ -16,3 +16,8 @@ class Frequency(str, Enum):
     WEEKLY = "weekly"
     MONTHLY = "monthly"
     YEARLY = "yearly"
+
+class Status(str, Enum):
+
+    ACTIVE = "active"
+    DEACTIVATED = "deactivated"

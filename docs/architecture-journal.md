@@ -1,1329 +1,923 @@
-
-# ARCHITECTURE JOURNAL
+# Architecture Journal
 
 ## Purpose
-To document the engineering journey, reflect on the day's work, capture key learnings, and plan the next steps.
 
-## Scope
-The scope includes all the activities done on a given day and the learning outcomes for the day.
+This journal records significant architectural decisions, implementation milestones, lessons learned, and remaining architectural work for LedgerLite.
 
-## Current Status
-Active
-
-## Date: 02/08/2026
-
-### Summary: 
-Continued setting up the engineering foundation for LedgerLite. Established the project documentation structure, created the bootstrap automation script, documented architectural decisions, and standardized repository organization.
-
-
-### Work Completed
-- Created complete docs directory structure
-- Initiated all major documents
-- Updated Decision log
-- Created bootstrap script for environment setup
-- Configured python virtual environment
-
-
-### Questions Explored
-1. What belongs in the machine layer versus the project layer?
-Software common for development in general belongs to machine layer and specific to project belongs to project layer.
-
-
-### Decisions made
-- Decision 008 finalized
-- Decision 009 finalized
-- Decision 010 finalized
-
-
-### Lessons learned
-The following principles emerged from today's work and will guide future development:
-1. Separate machine-level setup from project-level setup.
-The machine provides the foundation; the project is responsible only for its own dependencies.
-2. Development automation should be idempotent.
-Running the same setup script multiple times should always produce the same development environment.
-3. Documentation is an engineering tool, not just project paperwork.
-Good documentation preserves product vision, architectural reasoning, and reduces future communication gaps.
-4. Engineering decisions should record the reasoning, not just the outcome.
-Capturing alternatives considered is as valuable as recording the accepted solution.
-5. Simplicity should be preserved unless complexity provides clear value.
-Avoid introducing new tables, flags, or abstractions when the existing design already satisfies the requirements.
-
-### Challenges faced
-1. Bash scripting - Lost touch, had to put efforts to finish bootstrap.sh
-2. Time management - Couldn't finish daily task and had to extend to next day
-3. Git approach - Adopted a Git workflow different from the one used at work. Initially unfamiliar, but understood the reasoning by the end of the day.
-
-### Biggest Insight
-Good engineering is not only about writing code; it is about creating a process that keeps the project understandable, maintainable, and easy to evolve.
-
-### Next steps
-1. Finalize the remaining project documentation.
-2. Begin documenting the domain model in detail.
-3. Design the database schema from the finalized domain model.
-4. Initialize the FastAPI application structure.
-5. Start implementing the first working backend components.
-
-## Date: 03/08/2026
-
-### Summary
-
-Continued building the backend foundation of LedgerLite by transforming the project from a simple FastAPI application into a modular backend architecture. Established centralized configuration, created the reusable database connection layer, and introduced router-based endpoint organization.
-
-### Work Completed
-- Created the application package structure organized by responsibility.
-- Built the first FastAPI application entry point.
-- Implemented centralized configuration using BaseSettings.
-- Created reusable SQLite connection and session layers.
-- Implemented the first router (health.py).
-- Registered routers using app.include_router().
-- Verified the application through / and /health endpoints.
-
-### Questions Raised
-1. How does main.py discover routes defined in other modules?
-2. Why separate routing, configuration, and database responsibilities instead of placing everything in main.py?
-3. Should health endpoints verify only application availability or external dependencies like the database?
-
-### Decisions Made
-- Decision 011 finalized
-- Decision 012 finalized
-- Decision 013 finalized
-- Decision 014 finalized
-
-### Lessons Learned
-1. Python modules export objects, functions, and classes. Importing a router is no different from importing the settings object.
-2. main.py should compose the application rather than implement individual features.
-3. Routers own endpoint implementations, while the application is only responsible for registering them.
-4. Centralizing configuration allows the same application code to run in different environments without modification.
-5. Separating connection management from business logic reduces coupling and simplifies future database migrations.
-6. A modular architecture keeps growth predictable; adding a new feature becomes creating a new router and registering it.
-
-### Challenges Faced
-1. Understanding how routers defined in separate modules become part of the FastAPI application.
-2. Distinguishing between Python imports and FastAPI route registration.
-3. Recognizing that architectural boundaries are about responsibilities rather than simply splitting files.
-
-### Biggest Insight
-Applications are assembled by composing independent modules that explicitly expose responsibilities.
-
-### Next Steps
-1. Continue expanding the backend foundation following the established architecture.
-2. Begin defining the first domain models.
-3. Design the initial database schema.
-4. Introduce API modules for business functionality beyond health checks.
+It is not intended to duplicate detailed architecture documentation. Its purpose is to preserve the reasoning behind important decisions so that future implementation can continue without losing architectural context.
 
 ---
 
-## Date
+# Current Architecture
 
-2026-08-04
+LedgerLite follows a layered backend architecture:
 
-## Summary
+    API / Routes
+         ↓
+    Schemas
+         ↓
+    Services
+         ↓
+    Repositories
+         ↓
+    Models
+         ↓
+    Database
 
-Today's work focused on completing the API contract layer for LedgerLite. The objective was not to build persistence, but to establish clear boundaries between the HTTP layer, domain models, and future business logic.
+Supporting areas include:
 
----
+    app/
+    ├── core/
+    ├── database/
+    ├── models/
+    ├── repositories/
+    ├── services/
+    ├── schemas/
+    ├── routers/
+    ├── domain/
+    └── scripts/
 
-## Completed
+The architecture separates:
 
-- Completed `User` API router.
-  - `POST /users`
-  - `GET /user`
+- HTTP/API concerns
+- validation and serialization
+- business logic
+- database access
+- persistence models
+- domain concepts
+- configuration and infrastructure
 
-- Completed `FinancialRecord` API router.
-  - `POST /financial_records`
-  - `GET /financial_records/{record_id}`
-
-- Validated request and response schemas using FastAPI and Pydantic.
-
-- Tested all endpoints using `curl` and FastAPI Swagger UI (`/docs`).
-
----
-
-## Architectural Decisions
-
-### API Contracts Before Persistence
-
-The API contract should be designed and validated before introducing a database or ORM.
-
-This allowed the request and response models to evolve independently of persistence concerns.
-
----
-
-### Routers Only Handle HTTP
-
-Routers are responsible for:
-
-- Receiving HTTP requests.
-- Validating request data.
-- Routing requests to the appropriate service.
-- Returning HTTP responses.
-
-Routers are **not** responsible for:
-
-- Business rules.
-- Database operations.
-- Password hashing.
-- Validation requiring business knowledge.
-- Authorization logic.
+The objective is to keep responsibilities isolated so completed features can remain stable while new functionality is added.
 
 ---
 
-### Response Models Represent System-Owned Data
+# Architectural Philosophy
 
-Separate request and response schemas remain justified because they represent different ownership.
+LedgerLite is being developed feature-by-feature using user stories.
 
-Client-owned data:
+The objective is not to build every possible abstraction before implementing functionality.
 
-- username
-- display_name
-- amount
-- transaction_date
-- description
+The approach is:
 
-System-owned data:
+1. Establish the architectural boundary.
+2. Implement the feature.
+3. Validate the boundary.
+4. Test the feature.
+5. Preserve the completed behavior.
+6. Extend the architecture only when new functionality requires it.
 
-- id
-- user_id
-- created_at
-- updated_at
+Completed features should normally become stable legacy functionality.
 
-The API contract should expose only the fields appropriate for each request type.
+Future features should primarily add new classes, methods, modules, or flows rather than unnecessarily modifying completed functionality.
 
----
-
-### REST Resource Design
-
-Single resources are addressed using identifiers in the URL.
-
-Examples:
-
-- `GET /financial_records/{record_id}`
-- `POST /financial_records`
-
-The collection endpoint represents the resource collection, while the identifier represents an individual resource.
+If completed functionality unexpectedly breaks, it should be treated as a regression or production defect rather than normal development behavior.
 
 ---
 
-## Lessons Learned
+# Database Architecture
 
-- FastAPI automatically converts incoming JSON into strongly typed Pydantic objects before calling the route function.
-- `response_model` is not only documentation; it validates and serializes responses before they are returned.
-- Path parameters become typed Python objects in the route function.
-- Swagger UI (`/docs`) provides an interactive client generated directly from the API contract.
+SQLAlchemy is used as the database abstraction layer.
 
----
+The application uses:
 
-## Reflection
+- SQLAlchemy models
+- SQLAlchemy Engine
+- SQLAlchemy Session
+- repositories for database interaction
 
-The focus shifted away from learning FastAPI syntax and toward understanding backend architecture.
+The database implementation should remain replaceable.
 
-The important realization today was that frameworks are implementation tools, while the architecture defines responsibilities and boundaries.
+The application architecture should not depend unnecessarily on SQLite-specific behavior.
 
-The API layer now provides a stable contract that future service and persistence layers can build upon without changing the external behavior of the application.
+PostgreSQL remains a supported target for validation.
 
----
-
-## Next Session
-
-- Review and finalize the database design.
-- Validate tables, relationships, constraints, and ownership.
-- Introduce SQLAlchemy models as the persistence representation of the already-defined business domain.
-
-
-## Date
-
-2026-08-05
-
-## Summary
-
-Today's work completed the database design phase of LedgerLite.
-
-The focus was on validating the business model rather than writing code. Several design decisions were revisited and refined to improve consistency, preserve historical financial data, and simplify the MVP without sacrificing future extensibility.
-
-The backend architecture for Week 1 is now considered complete.
+Database portability will be deliberately tested during development rather than assumed.
 
 ---
 
-## Completed
+# Engine and Session
 
-- Finalized the `User` business model.
-- Finalized the `Category`, `Tag`, and `Goal` relationships.
-- Completed the `FinancialRecord` database design.
-- Completed `06-database-design.md`.
-- Reviewed documentation structure across the project.
-- Planned the Week 2 implementation roadmap.
+Database infrastructure was established before continuing with repository implementation.
 
----
+Current structure:
 
-## Architectural Decisions
+    app/database/
+    ├── engine.py
+    └── session.py
 
-### User Deactivation Instead of Deletion
+The Engine is responsible for database connectivity.
 
-Users will be deactivated rather than permanently deleted.
+The Session provides the unit-of-work interface used by repositories.
 
-This preserves historical financial records, maintains ownership relationships, and simplifies future reporting and auditing.
+Repositories receive or use the session rather than creating their own database infrastructure.
 
----
-
-### Simplified Recurring Transaction Model
-
-LedgerLite MVP will support only:
-
-- Monthly recurrence
-- Yearly recurrence
-
-Weekly and custom recurrence patterns are intentionally postponed until after the MVP.
+This keeps database infrastructure separate from repository and service logic.
 
 ---
 
-### Separate Business Concepts
+# Models
 
-Recurring schedule and fixed transaction amount represent different business concepts.
+SQLAlchemy models represent the persistence structure of the application.
 
-Recurring answers:
+Current entities include:
 
-> "When does this transaction occur?"
-
-Fixed answers:
-
-> "Does the amount remain constant?"
-
-These concepts are modeled independently.
-
----
-
-### Nullable Classifications
-
-Financial records may exist without:
-
+- User
 - Category
-- Tag
 - Goal
+- Tag
+- FinancialRecord
 
-Deleting these classifications will not remove historical financial records.
+The SQLAlchemy declarative base is defined separately.
 
-Instead, the related reference becomes `NULL`.
+Models are imported through the models package so SQLAlchemy can resolve relationships between mapped classes.
 
----
+Relationship annotations use appropriate typing information so SQLAlchemy can correctly resolve collection relationships.
 
-## Documentation
-
-The documentation structure became clearer during today's discussion.
-
-Each document now has a distinct responsibility.
-
-Examples:
-
-- Domain Model → Business concepts.
-- Database Design → Persistence design.
-- Decision Log → Why architectural decisions were made.
-- Engineering Principles → Reusable design principles.
-- Roadmap → Development milestones.
-
-This separation prevents duplication and keeps documentation easier to maintain.
+The model layer should remain focused on persistence representation and relationships rather than becoming a container for application-level business logic.
 
 ---
 
-## Lessons Learned
+# Repository Layer
 
-- Domain models describe business concepts rather than database tables.
-- Database design documents should describe persistence, not architectural reasoning.
-- Decision logs should capture *why* a design changed rather than implementation details.
-- Engineering principles should describe reusable patterns rather than project-specific decisions.
+The repository layer was introduced as part of Deliverable 6.
 
----
+Its purpose is to isolate database interaction from services and higher layers.
 
-## Reflection
+Typical flow:
 
-Today marked the completion of the design phase.
+    Service
+       ↓
+    Repository
+       ↓
+    Session
+       ↓
+    SQLAlchemy
+       ↓
+    Database
 
-At this point, the project has:
+Repositories are responsible for persistence operations such as:
 
-- A defined business domain.
-- Stable API contracts.
-- A documented database design.
-- Architectural principles.
-- Recorded design decisions.
+- retrieving records
+- inserting records
+- updating records
+- deleting records where appropriate
 
-The next stage is no longer about deciding how LedgerLite should work.
+Repositories should not contain business calculations or application workflow logic that belongs in services.
 
-It is about implementing the architecture that has already been designed.
-
----
-
-## Next Session
-
-- Begin Week 2.
-- Translate the database design into SQLAlchemy models.
-- Introduce the persistence layer.
-- Understand how SQLAlchemy represents the domain model without changing the architecture.
+The repository layer prevents the rest of the application from becoming tightly coupled to SQLAlchemy query details.
 
 ---
 
-## Date
+# Service Layer
 
-2026-08-06
+The service layer is responsible for application and business behavior.
 
-## Summary
+Typical flow:
 
-Today's work shifted from database design into understanding the persistence layer before writing any SQLAlchemy code.
+    API
+     ↓
+    Schema
+     ↓
+    Service
+     ↓
+    Repository
 
-Rather than immediately learning SQLAlchemy syntax, the focus was on building a conceptual understanding of how an Object Relational Mapper (ORM) bridges object-oriented programming and relational databases.
+Services should:
 
-By the end of the session, the responsibilities of Pydantic, FastAPI, SQLAlchemy, and the database were clearly separated.
+- coordinate application operations
+- apply business rules
+- perform calculations
+- coordinate repositories
+- determine application behavior
 
----
+Services should not directly implement HTTP concerns.
 
-## Completed
-
-- Reviewed the role of SQLAlchemy within the application architecture.
-- Distinguished Pydantic schemas from SQLAlchemy models.
-- Established the mapping between object-oriented concepts and relational database concepts.
-- Understood the purpose of metadata in SQLAlchemy.
-- Explored why ORM relationships exist in addition to database foreign keys.
-- Prepared the conceptual foundation for implementing SQLAlchemy models.
-
----
-
-## Architectural Understanding
-
-### Separation of Responsibilities
-
-The backend architecture consists of independent layers, each with a single responsibility.
-
-- FastAPI receives and routes HTTP requests.
-- Pydantic validates and serializes API data.
-- SQLAlchemy represents the persistence model.
-- The database stores and enforces relational data.
-
-Each layer remains independent and communicates through clearly defined contracts.
+Services should not bypass repositories to perform database operations directly.
 
 ---
 
-### SQLAlchemy Models Represent Persistence
+# Schema Layer
 
-A SQLAlchemy model is a Python class enriched with database metadata.
+Schemas define the data contract between the API and the application.
 
-The model serves two purposes simultaneously:
+They are responsible for:
 
-- As a normal Python object during application execution.
-- As the mapping definition for a relational database table.
+- request validation
+- response serialization
+- input/output structure
+- API-facing data representation
 
-This separates persistence concerns from API validation.
+Schemas should not become a replacement for domain or business logic.
 
----
+Validation representing API input requirements belongs in schemas.
 
-### Metadata Describes Structure
-
-Metadata does not represent business data.
-
-Instead, it describes how business data should be stored.
-
-Examples include:
-
-- Table names
-- Column types
-- Maximum lengths
-- Nullability
-- Uniqueness
-- Primary keys
-- Foreign keys
-
-The metadata exists even before any business data is stored.
+Business rules requiring application decisions belong in the service or domain layer.
 
 ---
 
-### Object Navigation vs Database Relationships
+# API / Router Layer
 
-A relational database connects tables using foreign keys.
+The API layer exposes application functionality through HTTP.
 
-Object-oriented code connects objects through references.
+Typical flow:
 
-SQLAlchemy bridges these two representations by allowing object navigation while maintaining relational integrity.
+    HTTP Request
+         ↓
+    API Route
+         ↓
+    Schema Validation
+         ↓
+    Service
+         ↓
+    Repository
+         ↓
+    Database
 
-Examples:
+Routes should remain thin.
 
-Database:
+They should primarily:
 
-- `financial_records.user_id`
+- receive requests
+- validate and parse input
+- invoke services
+- return responses
+- translate appropriate application errors into HTTP responses
 
-Python:
-
-- `financial_record.user`
-- `user.financial_records`
-
-This abstraction allows business logic to operate on objects rather than manually following foreign keys.
-
----
-
-## Lessons Learned
-
-- ORM stands for Object Relational Mapper because it maps object-oriented concepts to relational database concepts.
-- Tables map to classes.
-- Rows map to object instances.
-- Columns map to object attributes.
-- Foreign keys describe relationships in the database.
-- SQLAlchemy relationships describe navigation between Python objects.
-- Pydantic metadata describes validation rules.
-- SQLAlchemy metadata describes persistence rules.
+Business logic should not accumulate inside route functions.
 
 ---
 
-## Reflection
+# Configuration
 
-A major realization today was that SQLAlchemy introduces very little that is conceptually new.
+Application configuration is centralized under:
 
-Most of the ORM is built upon ordinary Python classes with additional metadata describing how those classes should be persisted.
+    app/core/config.py
 
-Understanding the concepts before the syntax significantly reduced the apparent complexity of SQLAlchemy.
+The database URL is configuration-driven rather than hardcoded into application components.
 
-Instead of viewing the ORM as a framework to memorize, it is now understood as a translation layer between two different representations of the same business domain.
-
----
-
-## Next Session
-
-- Begin implementing SQLAlchemy models.
-- Create the project `Base` class.
-- Build the `User` model.
-- Introduce `Mapped`, `mapped_column`, and `relationship`.
-- Translate the finalized database design into SQLAlchemy models.
----
-
-## Date
-
-2026-08-07
-
-## Summary
-
-Today's work completed the transition from the finalized database design into SQLAlchemy persistence models.
-
-The session began by translating the database specification into Python classes and gradually built an understanding of how SQLAlchemy represents database structure, ownership, relationships, constraints, defaults, and delete behavior.
-
-Rather than treating SQLAlchemy relationships as replacements for database foreign keys, the distinction between **database integrity** and **Python object navigation** was established.
-
-The finalized models were then validated through SQLAlchemy metadata inspection, confirming that the persistence model matches the intended database design.
+The architecture should allow the database implementation to be changed through configuration without modifying models, services, or repositories.
 
 ---
 
-## Completed
+# Database Initialization
 
-* Created a clean project-level SQLAlchemy `Base` class.
-* Implemented the `User` SQLAlchemy model.
-* Implemented the `Category` SQLAlchemy model.
-* Implemented the `Tag` SQLAlchemy model.
-* Implemented the `Goal` SQLAlchemy model.
-* Implemented the `FinancialRecord` SQLAlchemy model.
-* Added typed SQLAlchemy mappings using `Mapped` and `mapped_column`.
-* Added database foreign keys for ownership and classification relationships.
-* Added bidirectional SQLAlchemy relationships using `relationship` and `back_populates`.
-* Added composite uniqueness constraints for user-owned metadata.
-* Added database-level delete behavior using `CASCADE` and `SET NULL`.
-* Added financial-record validation constraints for `due_month` and `due_on`.
-* Added appropriate defaults for dates, timestamps, and `is_fixed`.
-* Distinguished `transaction_date` from `recorded_date`.
-* Validated the complete SQLAlchemy metadata successfully.
+Database initialization is handled separately from application runtime.
+
+The project contains:
+
+    scripts/init_db.py
+
+The initialization script imports model metadata and creates the required tables through the configured SQLAlchemy Engine.
+
+Database creation therefore does not belong inside repositories or services.
 
 ---
 
-## Architectural Understanding
+# US-001 — Create an Account
 
-### Base as the Declarative Foundation
+The latest completed implementation milestone is:
 
-A dedicated project `Base` class was retained even though it currently contains no LedgerLite-specific fields.
+    Backend: Implement US-001 — Create an Account
 
-`Base` now serves as the common declarative foundation for all SQLAlchemy models.
+US-001 established the first complete backend flow across the relevant layers.
 
-This keeps SQLAlchemy infrastructure centralized without coupling the base class to LedgerLite-specific persistence fields.
+The implementation changed User-related files across:
+
+- models
+- repositories
+- services
+- schemas
+- API
+
+The backend implementation of US-001 is now complete.
+
+Testing is the next major activity.
 
 ---
 
-### Foreign Keys and Relationships Have Different Responsibilities
+# US-001 Testing Strategy
 
-A foreign key establishes the relational connection at the database level.
+Testing will proceed from the inside out.
+
+The order is:
+
+    Models
+       ↓
+    Repositories
+       ↓
+    Services
+       ↓
+    Schemas
+       ↓
+    API
+
+The purpose is to establish confidence in each layer before moving outward.
+
+Each meaningful class and method changed for US-001 should receive appropriate unit-test coverage.
+
+Tests should verify meaningful behavior rather than artificially forcing every trivial implementation detail to have its own test.
+
+---
+
+# Backend Unit Testing
+
+The backend unit-test framework will use:
+
+- pytest
+
+Location:
+
+    app/tests/unit_test/
+
+Unit tests will not use a real database.
+
+Dependencies will be mocked where isolation requires it.
 
 For example:
 
-```text
-categories.user_id → users.id
-```
-
-The SQLAlchemy relationship provides object-level navigation:
-
-```text
-category.user
-user.categories
-```
-
-Therefore, the foreign key is responsible for **database integrity**, while the relationship is responsible for **ORM object navigation**.
-
-Both are useful and serve different purposes.
-
----
-
-### Bidirectional Relationships
-
-Relationships were implemented in both directions where navigation is useful.
-
-For example:
-
-```text
-Category
-    user
-      ↓
-    User
-
-User
-    categories
-      ↓
-    List[Category]
-```
-
-`back_populates` explicitly connects the two relationship definitions so SQLAlchemy understands that they represent the two sides of the same relationship.
-
-The same pattern is used for:
-
-* User ↔ Category
-* User ↔ Tag
-* User ↔ Goal
-* User ↔ FinancialRecord
-* Category ↔ FinancialRecord
-* Tag ↔ FinancialRecord
-* Goal ↔ FinancialRecord
-
----
-
-### User Ownership
-
-Every business entity is explicitly associated with a user through a foreign key.
-
-This makes ownership part of the persistence model rather than something that exists only as an application-level assumption.
-
-The resulting ownership structure is:
-
-```text
-User
- ├── Categories
- ├── Tags
- ├── Goals
- └── Financial Records
-```
-
----
-
-### Historical Financial Records
-
-Financial records were deliberately separated from their classification metadata.
-
-A financial record may reference:
-
-* Category
-* Tag
-* Goal
-
-but those references are nullable.
-
-When classification metadata is deleted, the corresponding reference becomes `NULL` rather than deleting the financial record.
-
-This preserves historical financial facts independently of mutable metadata.
-
----
-
-### Recurring Transactions
-
-The model represents recurring transactions through separate fields rather than treating recurrence as a single concept.
-
-The relevant fields are:
-
-* `frequency`
-* `due_month`
-* `due_on`
-* `end_date`
-
-`is_fixed` remains independent of recurrence.
-
-This allows combinations such as:
-
-```text
-Monthly + Fixed
-Monthly + Variable
-Yearly + Fixed
-Yearly + Variable
-```
-
-without coupling the two concepts.
-
----
-
-### Transaction Date vs Recorded Date
-
-Two different dates were intentionally retained:
-
-* `transaction_date` — the date the financial event actually occurred.
-* `recorded_date` — the date the event was entered into LedgerLite.
-
-`recorded_date` defaults to the current date because it represents when LedgerLite received the record.
-
-This distinction allows historical transactions to be entered after the actual event without losing information about when they entered the system.
-
----
-
-## Validation
-
-A dedicated model-validation script was used to inspect SQLAlchemy metadata before moving further into database implementation.
-
-The validation confirmed:
-
-* All five tables were registered.
-* Column types and lengths matched the database design.
-* Nullability matched the intended model.
-* Primary keys were present.
-* Unique constraints were present.
-* Foreign keys pointed to the correct tables.
-* `CASCADE` and `SET NULL` delete behaviors were present.
-* Financial-record check constraints were registered.
-* Enum mappings were recognized.
-* Defaults and update behavior were registered.
-
-The metadata validation completed successfully.
-
----
-
-## Lessons Learned
-
-* A SQLAlchemy foreign key and a SQLAlchemy relationship are not interchangeable.
-* Foreign keys enforce relational integrity.
-* Relationships provide object-level navigation.
-* `back_populates` explicitly connects both sides of an ORM relationship.
-* A collection relationship represents the "many" side of a one-to-many relationship.
-* SQLAlchemy metadata can be inspected before a real database exists.
-* Database constraints can be represented directly in SQLAlchemy models.
-* Defaults such as `date.today` and `datetime.now` should be passed as callables rather than evaluated during model definition.
-* `transaction_date` and `recorded_date` represent different business events and should remain separate.
-* A clean declarative `Base` provides a useful project boundary even when it contains no application-specific fields.
-
----
-
-## Reflection
-
-Today's work was less about writing SQLAlchemy syntax and more about translating an already-established database design into an ORM representation.
-
-The most important architectural distinction was between the **database model** and the **Python object graph**.
-
-The database needs foreign keys and constraints to preserve integrity.
-
-The application needs relationships to navigate those records naturally as Python objects.
-
-SQLAlchemy provides the bridge between these two representations without replacing either one.
-
-The successful metadata validation also established an important workflow for the project: the persistence model can be checked structurally before introducing the database engine, sessions, migrations, or CRUD operations.
-
-This keeps the implementation incremental and makes structural problems easier to identify before they spread into later layers.
-
----
-
-## Next Session
-
-* Introduce the SQLAlchemy database engine.
-* Configure the database connection.
-* Introduce session management.
-* Decide how database initialization should be handled.
-* Prepare the persistence layer for actual database operations.
-
----
-
-## Date
-
-2026-08-08
-
-## Summary
-
-Today's work completed **Deliverable 6 — Repository Layer** and established the architectural boundary between database persistence and business logic.
-
-The session began by clarifying SQLAlchemy session management and the difference between a `sessionmaker` factory and an actual SQLAlchemy `Session`.
-
-The repository layer was then implemented for all five LedgerLite entities:
-
-* User
-* Category
-* Goal
-* Tag
-* FinancialRecord
-
-Rather than treating repositories as generic CRUD wrappers, their responsibilities were designed from the actual LedgerLite ownership model and business requirements.
-
-The most important architectural outcome was establishing that repositories are responsible for **database interaction**, while services will own **business rules and transaction decisions**.
-
-The completed repository layer is now ready to support the service layer.
-
----
-
-## Completed
-
-* Confirmed `sessionmaker(engine)` creates a session factory.
-* Confirmed `SessionLocal()` creates an actual SQLAlchemy `Session`.
-* Removed the obsolete database connection approach.
-* Established `SessionLocal` as the application's session factory.
-* Resolved SQLAlchemy model relationship-registration issues.
-* Added model imports required for SQLAlchemy relationship resolution.
-* Created the `UserRepository`.
-* Created the `CategoryRepository`.
-* Created the `GoalRepository`.
-* Created the `TagRepository`.
-* Created the `FinancialRecordRepository`.
-* Implemented user-scoped retrieval.
-* Implemented creation operations.
-* Implemented physical deletion for applicable entities.
-* Implemented financial-record filtering by category.
-* Implemented financial-record filtering by goal.
-* Implemented financial-record filtering by tag.
-* Implemented financial-record filtering by recorded-date range.
-* Verified repository queries against the existing SQLite database.
-* Confirmed an empty database returns `None` for a missing user rather than failing.
-
----
-
-## Architectural Understanding
-
-### Session Factory vs Session
-
-The distinction between the SQLAlchemy session factory and an actual session was established.
-
-The application defines:
-
-```python
-SessionLocal = sessionmaker(engine)
-```
-
-`SessionLocal` is a **factory**, not a database session.
-
-An actual session is created when:
-
-```python
-session = SessionLocal()
-```
-
-is executed.
-
-The session is then passed into repositories:
-
-```text
-SessionLocal()
-    ↓
-Session
-    ↓
-Repository
-```
-
-This allows repositories to operate on the session without creating or owning the application's session lifecycle themselves.
-
----
-
-### Repository Responsibility
-
-The repository layer is responsible for **database interaction**.
-
-Repositories may:
-
-* Retrieve model objects.
-* Add model objects to the session.
-* Mark model objects for deletion.
-* Return model objects or collections of model objects.
-
-Repositories do not own business decisions.
-
-The intended boundary is:
-
-```text
-Repository
-    │
-    ├── Query database
-    ├── Add objects to session
-    └── Mark objects for deletion
-```
-
-Repositories do not handle:
-
-```text
-Business calculations
-Business rules
-Application-level decisions
-API responses
-Transaction boundaries
-```
-
-Those responsibilities belong to the service/application layer.
-
----
-
-### Repository Does Not Commit
-
-A major architectural decision was made that repositories will not call:
-
-```python
-session.commit()
-```
-
-or:
-
-```python
-session.rollback()
-```
-
-For example:
-
-```python
-def create(self, category):
-    self.session.add(category)
-    return category
-```
+    Service
+       ↓
+    Mock Repository
 
 and:
 
-```python
-def delete(self, category):
-    self.session.delete(category)
-    return category
-```
+    Repository
+       ↓
+    Mock Session
 
-The repository changes the state of the SQLAlchemy session.
+Unit tests should verify:
 
-The service layer will decide whether the overall operation should be committed or rolled back.
+- input reaches the dependency correctly
+- dependency calls are correct
+- dependency responses are handled correctly
+- expected output is generated
+- expected errors are raised or propagated
 
-This becomes particularly important when a single business operation involves multiple repositories.
+The unit-test suite provides detailed coverage for:
+
+- validation
+- negative scenarios
+- edge cases
+- business rules
+- error handling
+- individual method behavior
+
+---
+
+# Integration Testing
+
+After backend unit tests are complete, US-001 integration testing will be implemented.
+
+Location:
+
+    app/tests/integration_test/
+
+Integration tests will not mechanically mirror the application directory.
+
+They will represent meaningful application flows.
 
 For example:
 
-```text
-Service
-   │
-   ├── Repository A
-   ├── Repository B
-   └── Repository C
-          │
-          ▼
-       commit()
-```
+    API
+     ↓
+    Schema
+     ↓
+    Service
+     ↓
+    Repository
+     ↓
+    Model
+     ↓
+    Database
 
-This allows several database operations to participate in one transaction.
+The purpose is to verify that concrete components integrate correctly.
 
----
-
-## User Repository
-
-The `UserRepository` provides:
-
-```text
-get_by_id(user_id)
-get_by_user_name(user_name)
-create(user)
-```
-
-User retrieval is intentionally limited to the application's actual requirements.
-
-There is no physical `delete()` operation for users.
-
-User deletion is a business operation that changes the user's status to `deactivated`.
+Integration tests should not simply repeat every unit test.
 
 ---
 
-## User Ownership
+# Integration Database Strategy
 
-A major principle established during repository design is that user-owned data must remain explicitly scoped to the user.
+Integration tests will use a real isolated database.
+
+The initial implementation will use an in-memory database where appropriate.
+
+Setup and teardown are mandatory.
+
+Expected lifecycle:
+
+    Fresh Database
+         ↓
+    Test Setup
+         ↓
+    Test
+         ↓
+    Cleanup
+         ↓
+    Fresh State
+
+Tests must not depend on records created by previous tests.
+
+Tests may create and delete their own records, but the overall fixture lifecycle must still guarantee isolation.
+
+Tests should be executable in randomized order.
+
+Randomized execution is intended to expose:
+
+- leaked state
+- fixture pollution
+- incomplete teardown
+- order-dependent behavior
+
+---
+
+# Factories
+
+Test factories are a core part of the testing infrastructure.
+
+Factories provide reusable test data.
+
+Factories should generate valid domain data by default.
+
+Tests can override specific fields when testing invalid or special cases.
+
+Example:
+
+    UserFactory()
+
+produces a valid user.
+
+An invalid scenario can deliberately override a field:
+
+    UserFactory(mobile="123")
+
+Factories may use randomized values to broaden reasonable test coverage.
+
+Randomization is not intended to exhaustively test every possible input.
+
+When randomized data contributes to a failure, the generated data must be visible enough to reproduce the scenario.
+
+The exact random-seed mechanism will be decided when the factory framework is implemented.
+
+Factories must not contain application business logic.
+
+---
+
+# Fixtures
+
+Fixtures manage resources and lifecycle.
+
+Factories manage test data.
+
+These responsibilities remain separate.
+
+Fixtures may manage:
+
+- database setup
+- database teardown
+- sessions
+- application clients
+- test configuration
+- reusable dependencies
+
+Factories create entities and domain test data.
+
+---
+
+# Testing Independence
+
+Every test should be independent.
+
+Tests must not rely on:
+
+- execution order
+- another test's data
+- persistent developer database state
+- previous test side effects
+
+The test suite should support randomized execution.
+
+A failure caused by test ordering or state leakage indicates a problem with the test infrastructure.
+
+---
+
+# Database Portability Testing
+
+The application is designed to avoid unnecessary database-specific coupling.
+
+After several features have been implemented, the integration suite can deliberately be run against another supported database.
 
 For example:
 
-```python
-get_by_name(user_id, name)
-```
+    Features 1–3 complete
+          ↓
+    Switch database
+          ↓
+    Run full integration suite
+          ↓
+    Identify database coupling
+          ↓
+    Fix architectural issues
+          ↓
+    Continue development
 
-rather than:
-
-```python
-get_by_name(name)
-```
-
-This is particularly important for:
-
-* Categories
-* Goals
-* Tags
-* Financial Records
-
-The application should never assume that a resource name is globally unique when its uniqueness is actually scoped to a user.
+This is a deliberate validation exercise rather than a requirement to switch databases continuously.
 
 ---
 
-## Category, Goal, and Tag Repositories
+# Testing Architecture
 
-Category, Goal, and Tag all share the same ownership model.
+The complete backend testing approach is:
 
-Each uses:
+    Backend Application
 
-```text
-(user_id, name)
-```
+          API
+           ↓
+         Schema
+           ↓
+        Service
+           ↓
+      Repository
+           ↓
+         Model
+           ↓
+       Database
 
-as its logical lookup identity because the database defines:
 
-```text
-UNIQUE(user_id, name)
-```
+    Unit Testing
 
-Therefore their repositories provide:
+    Model
+       ↓
+    Repository     → mocked dependencies
+       ↓
+    Service        → mocked repository
+       ↓
+    Schema
+       ↓
+    API            → mocked dependencies
 
-```text
-get_by_name(user_id, name)
-create(object)
-delete(object)
-```
 
-This means two different users can independently have resources with the same name:
+    Integration Testing
 
-```text
-User 1 → Category: Food
-User 2 → Category: Food
-```
+    API
+     ↓
+    Schema
+     ↓
+    Service
+     ↓
+    Repository
+     ↓
+    Model
+     ↓
+    Real isolated test database
 
-while the same user cannot have two categories with the same name.
+Unit tests validate individual responsibilities.
 
----
+Integration tests validate concrete application flows.
 
-## FinancialRecord Repository
+E2E testing will later validate the complete application from the user's perspective.
 
-Financial records were treated differently from Category, Goal, and Tag because their `name` is not unique.
-
-A user may have many records with the same name:
-
-```text
-Salary
-Salary
-Salary
-```
-
-Therefore, retrieving financial records by name is not an appropriate repository operation.
-
-Instead, FinancialRecord retrieval is primarily filter-based.
-
-The repository currently provides:
-
-```text
-get_by_category(user_id, category_id)
-get_by_goal(user_id, goal_id)
-get_by_tag(user_id, tag_id)
-get_by_date_range(user_id, start_date, end_date)
-```
-
-All retrieval methods require `user_id`.
-
-This ensures that filtering operations remain within the authenticated user's data boundary.
+Regression testing will be a selected subset of E2E tests protecting completed user stories.
 
 ---
 
-### Foreign Key Columns vs Relationships
+# Environment Strategy
 
-While implementing financial-record filtering, the distinction between a relationship and its foreign-key column was reinforced.
+LedgerLite uses three environments:
 
-For example:
+    DEV
+     ↓
+    TEST
+     ↓
+    PROD
 
-```text
-FinancialRecord
-    category_id
-    category
-```
+There is no separate staging environment.
 
-`category_id` is the database foreign-key column.
+The TEST environment serves as the staging-equivalent validation environment.
 
-`category` is the SQLAlchemy relationship object.
+## DEV
 
-Therefore, repository queries use:
+DEV is used for:
 
-```python
-FinancialRecord.category_id == category_id
-```
+- active development
+- fast unit testing
+- local integration testing
+- local E2E testing where useful
 
-rather than treating the relationship itself as the database column.
+Developer testing discipline remains important.
 
-The same principle applies to:
+CI is not a replacement for regular local testing.
 
-* `goal_id` / `goal`
-* `tag_id` / `tag`
+## TEST
+
+TEST is the main validation environment.
+
+It is used for:
+
+- integration tests
+- E2E tests
+- regression tests
+- performance tests
+- load tests
+- concurrency tests
+- reliability tests
+
+## PROD
+
+PROD is not used for normal automated testing.
+
+Heavy automated validation occurs before production deployment.
+
+Production verification should remain minimal and safe.
 
 ---
 
-### Date Range Filtering
+# CI/CD Direction
 
-The repository provides a low-level date-range operation:
+GitHub Actions will eventually provide CI automation.
 
-```text
-get_by_date_range(user_id, start_date, end_date)
-```
+The project will use available free GitHub Actions capabilities and will not introduce paid infrastructure for this practice project.
 
-The repository is responsible for executing the database query.
+Intended pipeline:
 
-The service layer will determine what a business concept means.
+    Developer
+       ↓
+    Local Tests
+       ↓
+    Commit
+       ↓
+    Push
+       ↓
+    GitHub Actions
+       ↓
+    Automated Test Suites
+       ↓
+    Deployment Gate
+       ↓
+    TEST
+       ↓
+    PROD
 
-For example:
+CI is a safety net and should not replace developer testing discipline.
 
-```text
-"This month"
-"Last month"
-"This financial year"
-"Previous quarter"
-```
+---
 
-These concepts require business logic to calculate their actual date boundaries.
+# Deployment Gates
 
-Therefore:
+Deployment gates should be deliberately strong.
 
-```text
-Service
-    "This month"
+The project should not avoid running tests simply because a test suite takes time.
+
+Developers are expected to maintain tests regularly so CI remains reliable.
+
+Required validation should pass before deployment.
+
+The exact split between fast and heavy CI stages can be optimized during implementation.
+
+---
+
+# Performance, Load, Concurrency and Reliability
+
+These categories will remain deliberately simple.
+
+The strategy is:
+
+    Performance      → one E2E-level test
+    Load             → one E2E-level test
+    Concurrency      → one E2E-level test
+    Reliability      → one E2E-level test
+
+All will run in the TEST environment.
+
+The project does not require a large performance-testing infrastructure.
+
+The objective is basic protection against significant regressions while keeping the strategy appropriate for a practice project.
+
+---
+
+# Browser Coverage
+
+Playwright browser coverage will focus on:
+
+- Chrome
+- Firefox
+
+Supported operating-system coverage will include:
+
+- Windows
+- Linux
+
+Other Chromium-derived browsers are not a priority.
+
+The project will not spend disproportionate effort testing every browser variant.
+
+---
+
+# Current Status
+
+## Completed
+
+- Backend architecture established
+- SQLAlchemy model layer implemented
+- Database Engine implemented
+- Session factory implemented
+- Database initialization implemented
+- User model relationships resolved
+- Model import and mapper issues resolved
+- Repository layer introduced
+- Service layer established
+- Schema layer established
+- API route established
+- US-001 backend implementation completed
+- Testing strategy defined and consolidated
+- Test environments defined
+- CI/CD direction defined
+
+Latest commit:
+
+    Backend: Implement US-001 — Create an Account
+
+---
+
+# Immediate Next Work
+
+The immediate work is backend testing for US-001.
+
+Frontend work is intentionally deferred until the backend testing phase is complete.
+
+The next sequence is:
+
+    US-001 Backend
+          ↓
+    Backend Unit Tests
+          ↓
+    Models
+          ↓
+    Repositories
+          ↓
+    Services
+          ↓
+    Schemas
+          ↓
+    API
+
+For each layer:
+
+1. inspect the changed implementation
+2. identify meaningful classes and methods
+3. determine the correct unit-test boundary
+4. create the test
+5. run pytest
+6. investigate failures
+7. correct implementation or test design where necessary
+8. continue to the next layer
+
+Only after the complete US-001 backend unit-test suite is passing will integration testing begin.
+
+---
+
+# Remaining Work for US-001
+
+The intended sequence is:
+
+    US-001 Backend Implementation
+             ↓
+    Backend Unit Tests
+             ↓
+    Backend Integration Tests
+             ↓
+    Frontend Implementation
+             ↓
+    Frontend Unit Tests
+             ↓
+    Frontend Integration Tests
+             ↓
+    E2E
+             ↓
+    Regression Coverage
+             ↓
+    CI/CD Validation
+
+After US-001 becomes fully validated, development continues with the next user story.
+
+The same architectural and testing approach will be reused for subsequent features.
+
+---
+
+# Long-Term Development Cycle
+
+The desired development cycle is:
+
+    User Story
+         ↓
+    Architecture
+         ↓
+    Implementation
+         ↓
+    Unit Tests
+         ↓
+    Integration Tests
+         ↓
+    Frontend
+         ↓
+    E2E
+         ↓
+    Regression Protection
+         ↓
+    CI
+         ↓
+    Complete Feature
+
+The architecture should become more stable as the application grows.
+
+New functionality should primarily extend existing boundaries rather than bypass them.
+
+The testing suite should grow with the application and become the safety net that allows completed features to remain stable while new functionality is introduced.
+
+---
+
+# Lessons Learned
+
+## Database Infrastructure Before Repositories
+
+The repository layer depends on a working SQLAlchemy Engine and Session.
+
+Repositories should not be implemented before the database infrastructure they depend upon is understood and established.
+
+## SQLAlchemy Relationship Resolution
+
+SQLAlchemy relationships require correct type annotations and model registration.
+
+When models reference each other, all mapped models must be discoverable by SQLAlchemy before mapper configuration completes.
+
+## Repository Responsibility
+
+Repositories own database interaction.
+
+Services should not bypass repositories to directly manipulate persistence.
+
+## Service Responsibility
+
+Services coordinate application behavior and business rules.
+
+They should not become database-access layers or HTTP handlers.
+
+## Schema Responsibility
+
+Schemas validate and serialize API data.
+
+They should not become containers for unrelated business logic.
+
+## API Responsibility
+
+Routes should remain thin.
+
+Business logic belongs below the API boundary.
+
+## Testing Responsibility
+
+Unit tests isolate.
+
+Integration tests integrate.
+
+E2E tests behave like users.
+
+Regression protects completed user stories.
+
+---
+
+# Architectural Rule Going Forward
+
+When implementing a new feature, ask:
+
+    Does this belong to:
+
+    Model?
+    Repository?
+    Service?
+    Schema?
+    API?
+
+If it does not clearly belong to one layer, determine the responsibility before adding the code.
+
+Likewise for tests:
+
+    Is this testing one unit?
         ↓
-    start_date / end_date
+    Unit test
+
+    Is this testing multiple concrete backend components?
         ↓
-Repository
-    get_by_date_range(...)
-```
+    Integration test
 
-This keeps business-period calculations out of the repository.
+    Is this testing the complete user workflow?
+        ↓
+    E2E
 
----
+    Is this protecting a completed user workflow?
+        ↓
+    Regression subset
 
-## Creation Operations
+The objective is not to maximize the number of abstractions or tests.
 
-All repositories that support creation follow the same pattern:
-
-```python
-def create(self, object):
-    self.session.add(object)
-    return object
-```
-
-`session.add()` places the object into the SQLAlchemy session and causes SQLAlchemy to track it.
-
-The repository returns the same object so that the service layer can continue working with it.
-
-The repository does not commit the transaction.
-
----
-
-## Deletion Policy
-
-The deletion behavior of each entity was clarified.
-
-```text
-User
-    → Deactivate user
-
-Category
-    → Physical deletion
-
-Goal
-    → Physical deletion
-
-Tag
-    → Physical deletion
-
-FinancialRecord
-    → Physical deletion
-```
-
-User deletion is therefore a business-state transition rather than a repository-level physical delete.
-
-Categories, goals, tags, and financial records may be physically deleted according to LedgerLite's business requirements.
-
----
-
-### Returning Deleted Objects
-
-The repository's `delete()` methods return the object that was marked for deletion:
-
-```python
-def delete(self, category):
-    self.session.delete(category)
-    return category
-```
-
-Although `session.delete()` itself returns `None`, the original Python object remains available.
-
-Returning it allows the service or API layer to use information such as:
-
-```text
-Category 12 deleted
-Goal 5 deleted
-Tag 8 deleted
-Financial record 31 deleted
-```
-
-without requiring the repository to construct an API response.
-
----
-
-## Final Repository Structure
-
-The completed repository layer is:
-
-```text
-app/repositories/
-├── user.py
-├── category.py
-├── goal.py
-├── tag.py
-└── financial_record.py
-```
-
-The repository contracts are:
-
-```text
-UserRepository
-├── get_by_id(user_id)
-├── get_by_user_name(user_name)
-└── create(user)
-
-CategoryRepository
-├── get_by_name(user_id, name)
-├── create(category)
-└── delete(category)
-
-GoalRepository
-├── get_by_name(user_id, name)
-├── create(goal)
-└── delete(goal)
-
-TagRepository
-├── get_by_name(user_id, name)
-├── create(tag)
-└── delete(tag)
-
-FinancialRecordRepository
-├── get_by_category(user_id, category_id)
-├── get_by_goal(user_id, goal_id)
-├── get_by_tag(user_id, tag_id)
-├── get_by_date_range(user_id, start_date, end_date)
-├── create(record)
-└── delete(financial_record)
-```
-
----
-
-## Layer Responsibility
-
-The architecture now has a clearer persistence boundary:
-
-```text
-Request
-    ↓
-Router
-    ↓
-Pydantic Schema
-    ↓
-Service
-    ↓
-Repository
-    ↓
-SQLAlchemy Session
-    ↓
-SQLite
-```
-
-The repository layer is now responsible for the part between the service and the database.
-
-The service layer will sit above it and coordinate business operations.
-
----
-
-## Lessons Learned
-
-* `sessionmaker(engine)` creates a session factory rather than an actual session.
-* `SessionLocal()` creates an actual SQLAlchemy session.
-* A repository should receive a session rather than create its own database session.
-* `session.add()` adds an object to the session and allows SQLAlchemy to track it.
-* `session.delete()` marks an object for deletion but does not itself commit the deletion.
-* Repository methods should not automatically commit transactions.
-* Repository methods should not contain business logic.
-* SQLAlchemy query expressions use `==` for comparisons.
-* Python `and` should not be used to combine SQLAlchemy query expressions.
-* `.first()` returns one object or `None`.
-* `.all()` returns a collection of matching records.
-* Foreign-key columns should be queried directly when filtering by related IDs.
-* User ownership should be explicitly included in user-scoped repository queries.
-* Database uniqueness constraints and repository lookup methods should reflect the actual ownership model.
-* A resource's database ID does not always need to be the application's primary retrieval mechanism.
-* Financial records are better retrieved through meaningful filters than by assuming transaction names are unique.
-* Business concepts such as "this month" belong in the service layer rather than the repository.
-* Returning a model object from `create()` or `delete()` allows higher layers to use the result without making the repository responsible for API responses.
-* Physical deletion and business-level deactivation are different concepts.
-* Database `CASCADE` and `SET NULL` behavior defines what happens to related rows when a physical deletion occurs; it does not itself define whether the application should allow that deletion.
-
----
-
-## Reflection
-
-Today's work marked an important transition from defining **what the database looks like** to defining **how the application interacts with the database**.
-
-The most important lesson was that a repository is not simply a collection of CRUD functions.
-
-Its real purpose is to establish a clean boundary around persistence.
-
-The repository knows:
-
-```text
-How to query
-How to add
-How to delete
-How to retrieve
-```
-
-The service will know:
-
-```text
-Why the operation is allowed
-What business rules apply
-What other operations must happen
-Whether the transaction should succeed
-```
-
-This separation prevents database-access code from becoming mixed with business logic.
-
-The design of `FinancialRecordRepository` also demonstrated why repositories should be designed from the application's domain rather than blindly implementing generic CRUD.
-
-A financial record is not naturally retrieved by its name or only by its ID. In LedgerLite, users primarily work with records through categories, goals, tags, and time periods.
-
-The repository therefore exposes those meaningful persistence queries while leaving the interpretation of business concepts to the service layer.
-
-This completed the repository foundation needed for the next layer of the architecture.
-
----
-
-## Next Session
-
-Begin **Deliverable 7 — Service Layer**.
-
-Focus on:
-
-* Moving business rules out of routers.
-* Defining service responsibilities.
-* Password hashing.
-* Duplicate username handling.
-* User deactivation.
-* Category business rules.
-* Goal and tag business rules.
-* Recurring transaction validation.
-* Starter data creation during onboarding.
-* Transaction coordination across repositories.
-
-The next architectural boundary will be:
-
-```text
-Router
-    ↓
-Service
-    ↓
-Repository
-    ↓
-SQLite
-```
-
----
-
+The objective is to make the architecture predictable, testable, replaceable, and safe to extend.

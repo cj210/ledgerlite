@@ -1,8 +1,7 @@
 # Standard imports
-from sqlalchemy import String, Enum, DateTime
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy import String, Enum, DateTime, func
 from datetime import datetime
-from typing import List
 
 
 # Project imports
@@ -10,37 +9,40 @@ from app.models.base import Base
 from app.domain.enums import UserType, Status
 
 
-class User(Base):
+
+
+class UserModel(Base):
 
     __tablename__ = "users"
 
-    id: Mapped[int] = mapped_column(primary_key=True)
+    id: Mapped[int] = mapped_column(
+            primary_key=True,
+            autoincrement=True,
+            )
     user_name: Mapped[str] = mapped_column(
             String(20),
-            unique=True, 
+            unique=True,
             nullable=False,
             )
     display_name: Mapped[str] = mapped_column(
             String(30),
             nullable=False,
             )
-    user_type: Mapped[UserType] = mapped_column(
-            Enum(UserType),
+    password_hash: Mapped[str] = mapped_column(
+            String(128),
             nullable=False,
             )
-    status: Mapped[Status] = mapped_column(
-            Enum(Status),
+    user_type: Mapped[UserType] = mapped_column(
+            Enum(UserType, native_enum=False, length=20), 
             nullable=False,
+            default=UserType.INDIVIDUAL,
             )
     description: Mapped[str | None] = mapped_column(
             String(150),
             nullable=True,
             )
-    password_hash: Mapped[str] = mapped_column(
-            nullable=False,
-            )
     email: Mapped[str | None] = mapped_column(
-            String(254),
+            String(255),
             unique=True,
             nullable=True,
             )
@@ -49,16 +51,25 @@ class User(Base):
             unique=True,
             nullable=True,
             )
+    status: Mapped[Status] = mapped_column(
+            Enum(Status),
+            default=Status.ACTIVE, # Assign default python-side
+            nullable=False
+            )
     created_at: Mapped[datetime] = mapped_column(
-            DateTime,
+            DateTime(timezone=True),
+            nullable=False,
             default=datetime.now,
             )
     updated_at: Mapped[datetime] = mapped_column(
-            DateTime,
+            DateTime(timezone=True),
+            nullable=False,
             default=datetime.now,
             onupdate=datetime.now,
             )
-    categories: Mapped[List["Category"]] = relationship(back_populates="user")
-    tags: Mapped[List["Tag"]] = relationship(back_populates="user")
-    goals: Mapped[List["Goal"]] = relationship(back_populates="user")
-    financial_records: Mapped[List["FinancialRecord"]] = relationship(back_populates="user")
+
+    def __repr__(self) -> str:
+        return f"<UserModel(id={self.id}, user_name='{self.user_name}', user_type='{self.user_type}')>"
+
+    def __str__(self) -> str:
+        return f"{self.display_name} (@{self.user_name})"

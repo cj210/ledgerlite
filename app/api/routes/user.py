@@ -1,38 +1,38 @@
 # Standard imports
-from fastapi import APIRouter, status
-from datetime import datetime
-
+from fastapi import APIRouter, Depends, status
+from sqlalchemy.orm import Session
 
 # Project imports
+from app.database.session import get_db
 from app.schemas.user import UserCreate, UserResponse
-from app.domain.enums import UserType
+from app.services.user import UserService
+
+user_router = APIRouter(prefix="/users", tags=["Users"])
 
 
-user_router = APIRouter()
+@user_router.post(
+    "/",
+    response_model=UserResponse,
+    status_code=status.HTTP_201_CREATED,
+    summary="Create a new user",
+)
+def create_user(
+    user_in: UserCreate,
+    db: Session = Depends(get_db),
+) -> UserResponse:
+    user_service = UserService(session=db)
+    return user_service.create_user(user_in)
 
 
-
-
-@user_router.post("/users", response_model = UserResponse, status_code=status.HTTP_201_CREATED)
-def create_user(user: UserCreate):
-
-    response = UserResponse(
-            **user.model_dump(exclude={"password"}),
-            id = 1, 
-            created_at = datetime.now(),
-            updated_at = datetime.now())
-    return response
-    
-
-@user_router.get("/user", response_model = UserResponse)
-def get_user():
-    response = UserResponse(
-            username = "Alice",
-            display_name = "Al",
-            user_type = UserType.INDIVIDUAL,
-            id = 71, 
-            created_at = datetime.now(),
-            updated_at = datetime.now())
-    return response
-
-
+@user_router.get(
+    "/{user_id}",
+    response_model=UserResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Get user by ID",
+)
+def get_user(
+    user_id: int,
+    db: Session = Depends(get_db),
+) -> UserResponse:
+    user_service = UserService(session=db)
+    return user_service.get_by_id(user_id)

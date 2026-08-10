@@ -1,20 +1,16 @@
-# Standard imports
+#Standard imports
 from fastapi import FastAPI
 
-
 # Project imports
-from app.core.config import settings
-from app.api.routes.health import health_router
 from app.api.routes.user import user_router
-from app.api.routes.financial_record import financial_record_router
 
 
-app = FastAPI(title=settings.app_name)
-app.include_router(health_router)
-app.include_router(user_router)
-app.include_router(financial_record_router)
+ledger = FastAPI(title="Ledger Lite V1")
+ledger.include_router(user_router, prefix="/api/v1")
 
 
-@app.get("/")
-def root():
-    return {"status": "ok"}
+
+
+@ledger.get("/")
+def landing_page():
+    return {"Location": "Landing Page"}

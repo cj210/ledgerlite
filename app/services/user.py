@@ -4,7 +4,7 @@ from pwdlib import PasswordHash
 from sqlalchemy.orm import Session
 
 # Project imports
-from app.models.user import UserModel
+from app.models.user import User
 from app.repositories.user import UserRepository
 from app.schemas.user import UserCreate, UserUpdate
 
@@ -24,7 +24,7 @@ class UserService:
     def verify_password(self, plain_password: str, hashed_password: str) -> bool:
         return password_hash.verify(plain_password, hashed_password)
 
-    def get_by_id(self, user_id: int) -> UserModel:
+    def get_by_id(self, user_id: int) -> User:
         user = self.user_repo.get_by_id(user_id)
         if not user:
             raise HTTPException(
@@ -33,8 +33,8 @@ class UserService:
             )
         return user
 
-    def create_user(self, user_in: UserCreate) -> UserModel:
-        # 1. Uniqueness Validations
+    def create_user(self, user_in: UserCreate) -> User:
+        
         if self.user_repo.get_by_user_name(user_in.user_name):
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
@@ -51,13 +51,11 @@ class UserService:
                 detail="Mobile number already registered",
             )
 
-        # 2. Hash Password and Construct Model
         user_data = user_in.model_dump(exclude={"password"})
         hashed_password = self._hash_password(user_in.password)
 
-        new_user = UserModel(**user_data, password_hash=hashed_password)
+        new_user = User(**user_data, password_hash=hashed_password)
 
-        # 3. Save and Commit
         try:
             created_user = self.user_repo.create(new_user)
             self.session.commit()

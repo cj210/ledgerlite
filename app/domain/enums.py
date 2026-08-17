@@ -12,8 +12,6 @@ class UserType(str, Enum):
 
 class Frequency(str, Enum):
 
-    DAILY = "daily"
-    WEEKLY = "weekly"
     MONTHLY = "monthly"
     YEARLY = "yearly"
 
